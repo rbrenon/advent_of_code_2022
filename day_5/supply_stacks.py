@@ -3,7 +3,7 @@ from string import ascii_uppercase
 
 def main():
     raw_input = []
-    with open("test_input.txt") as file:
+    with open("input.txt") as file:
         for line in file.read().splitlines():
             line = f" {line}"
             raw_input.append(line)
