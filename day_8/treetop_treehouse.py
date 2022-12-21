@@ -1,3 +1,6 @@
+from math import prod
+
+
 def main():
     with open("input.txt") as file:
         file_contents = file.read().splitlines()
@@ -7,13 +10,15 @@ def main():
         for row_index, row in enumerate(file_contents)
     ]
 
-    print(f"Part one: {part_one(tree_matrix)}")  # too low: 1737; too high: 1884
+    find_the_tree(tree_matrix)
+    return
 
 
-def part_one(tree_matrix: list[list[int]]) -> int:
-    visible_trees: int = 0
+def find_the_tree(tree_matrix: list[list[int]]):
     end_of_row_index: int = len(tree_matrix) - 1
     end_of_col_index: int = len(tree_matrix[0]) - 1
+    visible_trees: int = 0
+    scene_scores = list()
 
     for row_index, row_values in enumerate(
         tree_matrix
@@ -30,11 +35,70 @@ def part_one(tree_matrix: list[list[int]]) -> int:
                     end_of_row_index,
                     value,
                     value_index,
-                    end_of_col_index,
                 )
             ):
                 visible_trees += 1
-    return visible_trees
+
+            # Part 2
+            scene_scores.append(
+                calculate_scene_score(
+                    tree_matrix,
+                    row_index,
+                    value_index,
+                    value,
+                    end_of_row_index,
+                    end_of_col_index,
+                )
+            )
+
+    print(f"Part one: {visible_trees}")  # answer: 1801; too low: 1737; too high: 1884
+    print(
+        f"Part two: {max(scene_scores)}"
+    )  # answer: 209_880; too high: 940_170; too low: 55_440
+
+
+def calculate_scene_score(
+    tree_matrix: list[list[int]],
+    row_index: int,
+    value_index: int,
+    value: int,
+    end_of_row_index: int,
+    end_of_col_index: int,
+) -> int:
+    if (
+        row_index == 0
+        or row_index == end_of_row_index
+        or value_index == 0
+        or value_index == end_of_col_index
+    ):
+        return 0
+
+    upper_rows = list(range(row_index - 1, -1, -1))  # up
+    lower_rows = list(range(row_index + 1, end_of_row_index + 1))  # down
+
+    scores: list[int] = [0, 0, 0, 0]
+
+    for left_tree in tree_matrix[row_index][value_index - 1 :: -1]:
+        if left_tree <= value:
+            scores[0] += 1
+        if left_tree >= value:
+            break
+    for right_tree in tree_matrix[row_index][value_index + 1 :]:
+        if right_tree <= value:
+            scores[1] += 1
+        if right_tree >= value:
+            break
+    for row in upper_rows:
+        if tree_matrix[row][value_index] <= value:
+            scores[2] += 1
+        if tree_matrix[row][value_index] >= value:
+            break
+    for row in lower_rows:
+        if tree_matrix[row][value_index] <= value:
+            scores[3] += 1
+        if tree_matrix[row][value_index] >= value:
+            break
+    return prod(scores)
 
 
 def i_can_see_the_tree(
@@ -43,10 +107,9 @@ def i_can_see_the_tree(
     end_of_row_index: int,
     value: int,
     value_index: int,
-    end_of_col_index: int,
 ) -> bool:
 
-    upper_rows = list(range(0, row_index))  # up
+    upper_rows = list(range(row_index - 1, -1, -1))  # up
     lower_rows = list(range(row_index + 1, end_of_row_index + 1))  # down
 
     if all([vals < value for vals in tree_matrix[row_index][:value_index]]):  # left
