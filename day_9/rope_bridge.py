@@ -1,8 +1,8 @@
 class Coord:
-    def __init__(self, x=0, y=0):
+    def __init__(self, x=0, y=0, stepped=False):
         self.x = x
         self.y = y
-        self.coords_visited = {(self.x, self.y)}
+        self.coords_visited = [(self.x, self.y)]
 
     def __str__(self):
         return f"({self.x},{self.y})"
@@ -17,12 +17,16 @@ class Coord:
         self.x = self.x + direction.x
         self.y = self.y + direction.y
 
-    def needs_to_move(self, head, tail) -> bool:
-        if head == tail:
+    def move_to_location(self, coordinates):
+        self.x = coordinates[0]
+        self.y = coordinates[1]
+
+    def needs_to_move(self, target) -> bool:
+        if self == target:
             return False
         else:
             for direction in ["UR", "DR", "R", "UL", "DL", "L", "U", "D"]:
-                neighbor_coord = Coord(head.x, head.y)
+                neighbor_coord = Coord(target.x, target.y)
                 neighbor_coord.move(DIRECTION_DICT[direction])
                 if self == neighbor_coord:
                     return False
@@ -57,9 +61,6 @@ class Coord:
                 return "DL"
             else:  # h: 0,0 -- 0,2 :t
                 return "D"
-        else:
-            print(f"no direction returned")
-        return None
 
 
 DIRECTION_DICT = {
@@ -74,29 +75,57 @@ DIRECTION_DICT = {
 }
 
 
-def part_one(input_instructions: list[str], head: Coord, tail: Coord) -> None:
-    dirs_moved = list()
+def part_one(input_instructions: list[str]) -> None:
+    head = Coord(0, 0)
+    tail = Coord(0, 0)
+
     for step in input_instructions:
         direction, distance = step.split(" ")  # 'R', '4'
         for each_step in range(0, int(distance)):  # iterate 0->4
             head.move(DIRECTION_DICT[direction])
-            if tail.needs_to_move(head, tail):
-                tail_direction = tail.determine_move_direction(head)
-                dirs_moved.append(tail_direction)
-                tail.move(DIRECTION_DICT[tail_direction])
-                tail.coords_visited.add((tail.x, tail.y))
+            if tail.needs_to_move(head):
+                tail.move(DIRECTION_DICT[tail.determine_move_direction(head)])
+                tail.coords_visited.append((tail.x, tail.y))
 
-    print(f"Part one: {len(tail.coords_visited)}")    # answer: 5710
+    tail_coords_visited = set(tail.coords_visited)
+    print(f"Part one: {len(tail_coords_visited)}")    # answer: 5710
+
+
+def part_two(input_instructions: list[str]) -> None:
+    rope = {
+        "head": Coord(0, 0),
+        "k1": Coord(0, 0),
+        "k2": Coord(0, 0),
+        "k3": Coord(0, 0),
+        "k4": Coord(0, 0),
+        "k5": Coord(0, 0),
+        "k6": Coord(0, 0),
+        "k7": Coord(0, 0),
+        "k8": Coord(0, 0),
+        "k9": Coord(0, 0)
+    }
+
+    for step in input_instructions:
+        direction, distance = step.split(" ")  # 'R', '4'
+        for each_step in range(0, int(distance)):  # iterate 0->4
+            rope["head"].move(DIRECTION_DICT[direction])
+            for key in rope.keys():
+                if key != "head":
+                    if rope[key].needs_to_move(rope[previous_rope_key]):
+                        rope[key].move(DIRECTION_DICT[rope[key].determine_move_direction(rope[previous_rope_key])])
+                        rope[key].coords_visited.append((rope[key].x, rope[key].y))
+                previous_rope_key = key
+
+    tail_coords_visited = set(rope['k9'].coords_visited)
+    print(f"Part two: {len(tail_coords_visited)}")    # answer: 2259; too high: 4477
 
 
 def main():
     with open("input.txt") as file:
         file_input = file.read().splitlines()  # ['R 4', 'U 4',...]
 
-    head = Coord(0, 0)
-    tail = Coord(0, 0)
-
-    part_one(file_input, head, tail)
+    part_one(file_input)
+    part_two(file_input)
 
 
 if __name__ == "__main__":
