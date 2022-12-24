@@ -1,4 +1,4 @@
-from functools import lru_cache
+import math
 
 
 def main():
@@ -8,7 +8,7 @@ def main():
     monkeys = create_monkeys(raw_input)
     part_one(monkeys)   # answer: 90882
     monkeys = create_monkeys(raw_input)
-    part_two(monkeys)
+    part_two(monkeys)   # answer: 30893109657
 
 
 def part_one(monkeys: list[dict]) -> None:
@@ -60,17 +60,24 @@ def part_two(monkeys: list[dict]) -> None:
     'test_divisor': 23,
     'true_throw': 2}},"""
 
+    monkey_divisors = list()
+    for index, monkey in enumerate(monkeys):
+        for key in monkeys[index].keys():
+            monkey_divisors.append(monkeys[index][key]["test_divisor"])
+    monkey_divisors_lcm = math.lcm(*monkey_divisors)
+
     for round_no in range(1, 10_001):
         for index, monkey in enumerate(monkeys):
             for key in monkeys[index].keys():
                 for item in monkeys[index][key]["items"]:
+                    monkeys[index][key]["inspections"] += 1
                     new_worry_level = calc_worry_score(
                         item,
                         monkeys[index][key]["operand_a"],
                         monkeys[index][key]["operand_b"],
                         monkeys[index][key]["operation"],
                     )
-                    new_worry_level = new_worry_level % monkeys[index][key]["test_divisor"]
+                    new_worry_level %= monkey_divisors_lcm
                     if new_worry_level % monkeys[index][key]["test_divisor"] == 0:
                         target_monkey = monkeys[index][key]["true_throw"]
                     else:
@@ -78,7 +85,7 @@ def part_two(monkeys: list[dict]) -> None:
                     monkeys[target_monkey][f"Monkey {target_monkey}"]["items"].append(
                         new_worry_level
                     )
-                    monkeys[index][key]["inspections"] += 1
+
                 monkeys[index][key]["items"] = []
 
     monkey_business = list()
@@ -86,9 +93,9 @@ def part_two(monkeys: list[dict]) -> None:
         for key in monkeys[index].keys():
             monkey_business.append(monkeys[index][key]["inspections"])
     print(
-        f"Part two: total monkey business = {monkey_business}")
-        # f"{multipy(sorted(monkey_business, reverse=True)[0], sorted(monkey_business, reverse=True)[1])}"
-    # )
+        f"Part two: total monkey business = "
+        f"{multipy(sorted(monkey_business, reverse=True)[0], sorted(monkey_business, reverse=True)[1])}"
+    )
 
 
 def calc_worry_score(item: int, op_a: str, op_b: str, operation: str) -> int:
