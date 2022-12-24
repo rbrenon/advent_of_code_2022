@@ -1,5 +1,5 @@
 import math
-
+from tqdm import tqdm
 
 def main():
     with open("input.txt") as file:
@@ -20,7 +20,7 @@ def part_one(monkeys: list[dict]) -> None:
     'test_divisor': 23,
     'true_throw': 2}},"""
 
-    for round_no in range(1, 21):
+    for round_no in tqdm(range(1, 21)):
         for index, monkey in enumerate(monkeys):
             for key in monkeys[index].keys():
                 for item in monkeys[index][key]["items"]:
@@ -66,7 +66,7 @@ def part_two(monkeys: list[dict]) -> None:
             monkey_divisors.append(monkeys[index][key]["test_divisor"])
     monkey_divisors_lcm = math.lcm(*monkey_divisors)
 
-    for round_no in range(1, 10_001):
+    for round_no in tqdm(range(1, 10_001)):
         for index, monkey in enumerate(monkeys):
             for key in monkeys[index].keys():
                 for item in monkeys[index][key]["items"]:
